@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class SnakeController : MonoBehaviour
@@ -5,10 +6,12 @@ public class SnakeController : MonoBehaviour
     public float movesPerSecond = 1.0f;
     private float tick = 0.0f;
 
+    public GameObject segmentPrefab;
+
     private Vector2 direction = Vector2.right;
     private Vector2 queuedDirection = Vector2.zero;
     private Transform head;
-
+    private bool ate = false;
 
     // Start is called before the first frame update
     void Start()
@@ -16,6 +19,7 @@ public class SnakeController : MonoBehaviour
         tick = 0.0f;
         direction = Vector2.right;
         head = transform.GetChild(0);
+        ate = false;
     }
 
     // Update is called once per frame
@@ -37,7 +41,12 @@ public class SnakeController : MonoBehaviour
         {
             queuedDirection = Vector2.right;
         }
+        else if (Input.GetKey("space"))
+        {
+            ate = true;
+        }
 
+        // Is it time to move?
         if ((tick += Time.deltaTime) < (1.0f / movesPerSecond))
         {
             return;
@@ -50,12 +59,18 @@ public class SnakeController : MonoBehaviour
             queuedDirection = Vector2.zero;
         }
 
+        if (ate)
+        {
+            // Add a new segment
+            var segment = Instantiate(segmentPrefab, head.position, Quaternion.identity, transform);
+            segment.name = "Segment";
+            ate = false;
+        }
         // Move the head and segments
         for (int i = transform.childCount - 1; i > 0; i--)
         {
             var segment = transform.GetChild(i);
             var parent = transform.GetChild(i - 1);
-            //segment.position = new Vector3(parent.position.x, parent.position.y, parent.position.y);
             segment.position = parent.position;
         }
         head.Translate(direction);
